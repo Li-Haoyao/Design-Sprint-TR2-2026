@@ -1,9 +1,9 @@
 {
-  "requestId": "sample-chat-result",
-  "generatedAt": "2026-08-11T12:05:10+08:00",
+  "generatedAt": "2026-08-11T06:13:54Z",
+  "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
   "provider": "OpenRouter",
-  "model": "openrouter/free",
-  "question": "What changed this week?",
-  "reply": "This is a sample answer. After you upload a new chat_input.json and commit it, the OpenRouter GitHub Action will generate a new answer based on Mary's saved health records.",
-  "source": "Sample data"
+  "question": "what should i do",
+  "reply": "Based on your latest readings, your blood pressure has shown a gradual increase over the past week (from 128/82 to 138/88 mmHg), while your blood sugar and heart rate remain stable. You’re feeling well with no symptoms.\n\n**What you can do now:**\n- Keep taking your daily readings as usual.\n- Bring these logs to your next clinic visit so your doctor can review the trend.\n- If your blood pressure stays at this level or continues to rise, or if you notice any new symptoms (like persistent headaches, dizziness, vision changes, or chest pain), contact your healthcare provider sooner.\n\nYou’re doing a great job tracking consistently—that’s the most helpful thing for your care team.",
+  "requestId": "chat-d6a6dcdd-d5be-4210-bf04-69b7b6634a5c",
+  "source": "OpenRouter API via C++ and GitHub Actions"
 }
