@@ -1,5 +1,5 @@
-name: CareMate Health Analysis - Gemini
-run-name: CareMate Health Analysis
+name: CareMate AI Assistant - OpenRouter
+run-name: CareMate AI Assistant
 
 on:
   workflow_dispatch:
@@ -10,11 +10,11 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "caremate-health"
+  group: "caremate-chat"
   cancel-in-progress: false
 
 jobs:
-  analyse:
+  chat:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,19 +23,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build and run C++ Gemini analysis
-        id: cpp_health
+      - name: Build and run C++ OpenRouter chat
+        id: cpp_chat
         continue-on-error: true
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
         run: |
           sudo apt-get update
           sudo apt-get install -y g++ libcurl4-openssl-dev nlohmann-json3-dev
-          g++ -std=c++17 -O2 cpp/health_analysis.cpp -lcurl -o health_analysis
-          ./health_analysis
+          g++ -std=c++17 -O2 cpp/ai_chat.cpp -lcurl -o ai_chat
+          ./ai_chat
 
-      - name: Ensure a matching result always exists
+      - name: Ensure a matching chat result always exists
         if: always()
         run: |
           python3 - <<'PY'
@@ -43,8 +43,8 @@ jobs:
           from datetime import datetime, timezone
           from pathlib import Path
 
-          inp = json.loads(Path("data/health_input.json").read_text(encoding="utf-8"))
-          result_path = Path("data/health_result.json")
+          inp = json.loads(Path("data/chat_input.json").read_text(encoding="utf-8"))
+          result_path = Path("data/chat_result.json")
           request_id = inp.get("requestId", "")
 
           try:
@@ -58,47 +58,23 @@ jobs:
                   "generatedAt": datetime.now(timezone.utc).isoformat(),
                   "provider": "CareMate",
                   "model": "workflow-fallback",
-                  "status": "Monitor",
-                  "headline": "Analysis could not be completed",
-                  "meaningfulChanges": 0,
-                  "summary": "Your health check was received, but the AI analysis was not completed.",
-                  "reason": "CareMate could not complete the analysis this time.",
-                  "secondaryFinding": "Your submitted record has been kept for the prototype.",
-                  "nextActionShort": "Try again",
-                  "nextAction": "Please try the health check again. If you feel unwell or are concerned, contact a qualified healthcare professional.",
-                  "careSummary": "The latest record was received, but no new AI trend summary is available.",
-                  "familySummary": "The latest record was received, but the AI summary was unavailable.",
-                  "symptomGuidance": "Do not rely on this prototype for urgent or emergency decisions.",
-                  "aiExplanation": "The automated analysis did not finish successfully.",
+                  "question": inp.get("question", ""),
+                  "reply": "CareMate received your question, but the AI answer could not be completed. Please try again.",
                   "source": "Workflow fallback"
               }
               result_path.write_text(json.dumps(fallback, indent=2) + "\n", encoding="utf-8")
-
-          # Ensure the latest input is represented in history even when C++ failed early.
-          hist_path = Path("data/history.json")
-          try:
-              history = json.loads(hist_path.read_text(encoding="utf-8"))
-              if not isinstance(history, list):
-                  history = []
-          except Exception:
-              history = []
-
-          if request_id and not any(x.get("requestId") == request_id for x in history if isinstance(x, dict)):
-              history.append(inp)
-              history = history[-30:]
-              hist_path.write_text(json.dumps(history, indent=2) + "\n", encoding="utf-8")
           PY
 
-      - name: Commit generated health files
+      - name: Commit generated chat result
         if: always()
         run: |
           git config user.name "caremate-actions"
           git config user.email "actions@users.noreply.github.com"
-          git add data/health_result.json data/history.json
+          git add data/chat_result.json
           if git diff --cached --quiet; then
-            echo "No generated health changes to commit."
+            echo "No generated chat change to commit."
           else
-            git commit -m "Update CareMate health analysis"
+            git commit -m "Update CareMate AI answer"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
@@ -126,7 +102,7 @@ jobs:
           path: site
 
   deploy:
-    needs: analyse
+    needs: chat
     if: always()
     runs-on: ubuntu-latest
     environment:
