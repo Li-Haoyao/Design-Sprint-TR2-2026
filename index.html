@@ -266,7 +266,7 @@ let healthPollTimer=null;
 let chatPollTimer=null;
 
 const GITHUB_BRANCH='main';
-const GITHUB_API_VERSION='2022-11-28';
+const GITHUB_API_VERSION='2026-03-10';
 const GITHUB_TOKEN_SESSION_KEY='caremateGithubToken';
 
 function go(id){
@@ -538,14 +538,26 @@ async function monitorGeneratedResult(type,requestId){
         if(type==='health'){
           updateHealthProgress(
             'Analysis complete.',
-            'Publishing the updated page...',
+            'Refreshing your updated health overview...',
             'success'
           );
+
+          sessionStorage.setItem('caremateLatestHealthResult',JSON.stringify(result));
+          try{
+            const repoHistory=await fetchGitHubJSON('data/history.json');
+            sessionStorage.setItem('caremateLatestHealthHistory',JSON.stringify(repoHistory));
+          }catch(e){}
+
+          localStorage.removeItem('carematePendingHealthId');
+          scheduleSingleReload('home','health');
         }else{
           updateChatProgress(
             requestId,
-            'Answer ready. Updating the page...'
+            'Answer ready. Refreshing the page...'
           );
+          sessionStorage.setItem('caremateLatestChatReply',result.reply || 'No reply returned.');
+          localStorage.removeItem('carematePendingChatId');
+          scheduleSingleReload('assistant','chat');
         }
         return result;
       }
@@ -569,6 +581,46 @@ async function monitorGeneratedResult(type,requestId){
     );
   }
   return null;
+}
+
+
+async function dispatchGitHubWorkflow(workflowFile){
+  const cfg=detectGitHubRepository();
+  const token=getGitHubToken();
+
+  const url=
+    `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}`+
+    `/actions/workflows/${encodeURIComponent(workflowFile)}/dispatches`;
+
+  const response=await fetch(url,{
+    method:'POST',
+    headers:{
+      'Accept':'application/vnd.github+json',
+      'Authorization':`Bearer ${token}`,
+      'X-GitHub-Api-Version':GITHUB_API_VERSION,
+      'Content-Type':'application/json'
+    },
+    body:JSON.stringify({ref:cfg.branch})
+  });
+
+  if(response.status===401 || response.status===403){
+    forgetGitHubToken();
+    throw new Error('GitHub permission is not sufficient to start the analysis.');
+  }
+
+  if(!response.ok){
+    const detail=await response.text();
+    throw new Error(`Could not start the analysis (${response.status}). ${detail.slice(0,180)}`);
+  }
+
+  // Newer GitHub API versions may return workflow-run metadata.
+  // Older-compatible responses may have no response body.
+  try{
+    const text=await response.text();
+    return text ? JSON.parse(text) : {};
+  }catch(e){
+    return {};
+  }
 }
 
 /* =========================================================
@@ -622,15 +674,20 @@ async function saveHealth(){
   g.innerHTML='<strong>Submitting...</strong> Your health check is being sent for AI analysis.';
 
   try{
-    const commitResult=await updateGitHubJSON(
+    await updateGitHubJSON(
       'data/health_input.json',
       input,
       `CareMate health check ${requestId}`
     );
 
     localStorage.setItem('carematePendingHealthId',requestId);
-    updateHealthProgress('Submitted.','Your health analysis is starting...');
-    toast('Health check submitted');
+    updateHealthProgress('Submitted.','Starting your health analysis...');
+
+    await new Promise(resolve=>setTimeout(resolve,600));
+    await dispatchGitHubWorkflow('health-analysis.yml');
+
+    updateHealthProgress('Started.','Your health analysis is now running...');
+    toast('Health analysis started');
 
     monitorGeneratedResult('health',requestId);
     startHealthPolling(true);
@@ -778,15 +835,20 @@ async function sendChat(){
   box.value='';
 
   try{
-    const commitResult=await updateGitHubJSON(
+    await updateGitHubJSON(
       'data/chat_input.json',
       data,
       `CareMate AI question ${requestId}`
     );
 
     localStorage.setItem('carematePendingChatId',requestId);
-    updateChatProgress(requestId,'Question submitted. Waiting for AI...');
-    toast('Question submitted');
+    updateChatProgress(requestId,'Question submitted. Starting AI...');
+
+    await new Promise(resolve=>setTimeout(resolve,600));
+    await dispatchGitHubWorkflow('ai-chat.yml');
+
+    updateChatProgress(requestId,'CareMate AI is now working on your answer...');
+    toast('AI request started');
 
     monitorGeneratedResult('chat',requestId);
     startChatPolling(true);
@@ -871,14 +933,33 @@ window.addEventListener('DOMContentLoaded',()=>{
     go(destination);
   }
 
-  loadHealthResult(false);
-  loadChatResult(false);
-  startHealthPolling(false);
-  startChatPolling(false);
+  const storedHealthResult=sessionStorage.getItem('caremateLatestHealthResult');
+  const storedHealthHistory=sessionStorage.getItem('caremateLatestHealthHistory');
 
-  if(reloadReason==='health'){
+  if(reloadReason==='health' && storedHealthResult){
+    try{
+      const r=JSON.parse(storedHealthResult);
+      const h=storedHealthHistory ? JSON.parse(storedHealthHistory) : latestHistory;
+      applyHealthResult(r,Array.isArray(h)?h:[]);
+      latestHealthResult=r;
+      latestHistory=Array.isArray(h)?h:[];
+    }catch(e){}
+    sessionStorage.removeItem('caremateLatestHealthResult');
+    sessionStorage.removeItem('caremateLatestHealthHistory');
     setTimeout(()=>toast('Updated health results loaded'),300);
+
+    // Give GitHub Pages time to publish before normal static-file polling resumes.
+    setTimeout(()=>{
+      loadHealthResult(false);
+      startHealthPolling(false);
+    },8000);
+  }else{
+    loadHealthResult(false);
+    startHealthPolling(false);
   }
+
+  loadChatResult(false);
+  startChatPolling(false);
 
   if(reloadReason==='chat'){
     const reply=sessionStorage.getItem('caremateLatestChatReply');
@@ -895,8 +976,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     }
     setTimeout(()=>toast('Latest AI answer loaded'),300);
   }
-});
-</script>
+});</script>
 
 </body>
 </html>

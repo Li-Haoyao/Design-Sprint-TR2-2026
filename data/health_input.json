@@ -1,7 +1,7 @@
 {
-  "requestId": "health-1097ecfd-13db-404b-9ce8-2b0a364415cc",
+  "requestId": "sample-health-input",
   "patient": "Mary Tan",
-  "submittedAt": "2026-08-11T05:29:27.364Z",
+  "submittedAt": "2026-08-11T12:00:00+08:00",
   "systolic": 138,
   "diastolic": 88,
   "bloodGlucose": 6.8,

@@ -77,7 +77,8 @@ static json error_result(const json& input, const std::string& message, const st
         {"headline", "AI analysis unavailable"},
         {"meaningfulChanges", 0},
         {"summary", "The health record was saved, but the Gemini analysis could not be completed."},
-        {"reason", message},
+        {"reason", "CareMate could not complete the AI analysis this time."},
+        {"technicalError", message},
         {"secondaryFinding", "Check the GitHub Actions log and API configuration."},
         {"nextActionShort", "Check workflow"},
         {"nextAction", "Check GEMINI_API_KEY and the workflow log, then run the health workflow again."},
@@ -234,7 +235,7 @@ int main() {
         const std::string model =
             (model_env && std::string(model_env).size())
             ? std::string(model_env)
-            : "gemini-3.5-flash";
+            : "gemini-3.6-flash";
 
         if (api_key.empty()) {
             write_json_file(
