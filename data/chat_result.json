@@ -1,0 +1,9 @@
+{
+  "requestId": "sample-chat-result",
+  "generatedAt": "2026-08-11T12:05:10+08:00",
+  "provider": "OpenRouter",
+  "model": "openrouter/free",
+  "question": "What changed this week?",
+  "reply": "This is a sample answer. After you upload a new chat_input.json and commit it, the OpenRouter GitHub Action will generate a new answer based on Mary's saved health records.",
+  "source": "Sample data"
+}

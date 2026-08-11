@@ -1,0 +1,19 @@
+{
+  "requestId": "sample-health-result",
+  "generatedAt": "2026-08-11T12:00:00+08:00",
+  "provider": "Gemini",
+  "model": "gemini-3.5-flash",
+  "status": "Monitor",
+  "headline": "Needs attention",
+  "meaningfulChanges": 1,
+  "summary": "Blood pressure has shown a gradual upward pattern across recent home readings.",
+  "reason": "The change appears across several readings rather than one isolated entry.",
+  "secondaryFinding": "Blood glucose remains comparatively close to the recent pattern.",
+  "nextActionShort": "Recheck tonight",
+  "nextAction": "Continue the planned monitoring and consider sharing the trend with a qualified healthcare professional if it persists or Mary feels unwell.",
+  "careSummary": "Recent home records show a gradual blood-pressure rise while blood glucose is comparatively stable. Continue monitoring and use professional follow-up if the pattern persists or symptoms develop.",
+  "familySummary": "Mary's blood pressure has gradually increased over recent readings. Blood glucose is comparatively stable. Another reading is planned.",
+  "symptomGuidance": "No new symptom was recorded in this sample result.",
+  "aiExplanation": "This sample result demonstrates the display format. Run the Gemini workflow to replace it with an API-generated analysis.",
+  "source": "Sample data"
+}

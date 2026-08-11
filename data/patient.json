@@ -1,0 +1,19 @@
+{
+  "id": 1,
+  "name": "Mary Tan",
+  "age": 70,
+  "occupation": "Retired Primary School Teacher",
+  "location": "Toa Payoh, Singapore",
+  "livingSituation": "Lives independently in a HDB flat. Her daughter lives nearby but works full-time.",
+  "healthContext": [
+    "Hypertension",
+    "Type 2 diabetes"
+  ],
+  "goals": [
+    "Maintain stable control of chronic conditions",
+    "Detect health changes as early as possible",
+    "Continue living independently at home",
+    "Receive timely support without relying only on hospital or clinic visits"
+  ],
+  "prototypeNotice": "Synthetic persona data for a university design sprint. Not for real clinical use."
+}

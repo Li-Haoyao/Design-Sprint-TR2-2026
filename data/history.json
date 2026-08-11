@@ -1,0 +1,72 @@
+[
+  {
+    "requestId": "seed-01",
+    "submittedAt": "2026-08-05T08:10:00+08:00",
+    "systolic": 128,
+    "diastolic": 82,
+    "bloodGlucose": 6.7,
+    "heartRate": 74,
+    "symptom": "None",
+    "note": ""
+  },
+  {
+    "requestId": "seed-02",
+    "submittedAt": "2026-08-06T08:12:00+08:00",
+    "systolic": 130,
+    "diastolic": 83,
+    "bloodGlucose": 6.9,
+    "heartRate": 75,
+    "symptom": "None",
+    "note": ""
+  },
+  {
+    "requestId": "seed-03",
+    "submittedAt": "2026-08-07T08:08:00+08:00",
+    "systolic": 129,
+    "diastolic": 82,
+    "bloodGlucose": 6.5,
+    "heartRate": 74,
+    "symptom": "None",
+    "note": ""
+  },
+  {
+    "requestId": "seed-04",
+    "submittedAt": "2026-08-08T08:15:00+08:00",
+    "systolic": 133,
+    "diastolic": 85,
+    "bloodGlucose": 6.8,
+    "heartRate": 76,
+    "symptom": "None",
+    "note": ""
+  },
+  {
+    "requestId": "seed-05",
+    "submittedAt": "2026-08-09T08:09:00+08:00",
+    "systolic": 135,
+    "diastolic": 86,
+    "bloodGlucose": 7.0,
+    "heartRate": 76,
+    "symptom": "None",
+    "note": ""
+  },
+  {
+    "requestId": "seed-06",
+    "submittedAt": "2026-08-10T08:11:00+08:00",
+    "systolic": 137,
+    "diastolic": 87,
+    "bloodGlucose": 6.7,
+    "heartRate": 76,
+    "symptom": "None",
+    "note": ""
+  },
+  {
+    "requestId": "seed-07",
+    "submittedAt": "2026-08-11T08:10:00+08:00",
+    "systolic": 138,
+    "diastolic": 88,
+    "bloodGlucose": 6.8,
+    "heartRate": 76,
+    "symptom": "None",
+    "note": ""
+  }
+]
