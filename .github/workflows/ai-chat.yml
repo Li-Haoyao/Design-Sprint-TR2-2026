@@ -1,0 +1,118 @@
+name: CareMate AI Assistant - OpenRouter
+run-name: CareMate AI Assistant
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "caremate-chat"
+  cancel-in-progress: false
+
+jobs:
+  chat:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Build and run C++ OpenRouter chat
+        id: cpp_chat
+        continue-on-error: true
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ libcurl4-openssl-dev nlohmann-json3-dev
+          g++ -std=c++17 -O2 cpp/ai_chat.cpp -lcurl -o ai_chat
+          ./ai_chat
+
+      - name: Ensure a matching chat result always exists
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          inp = json.loads(Path("data/chat_input.json").read_text(encoding="utf-8"))
+          result_path = Path("data/chat_result.json")
+          request_id = inp.get("requestId", "")
+
+          try:
+              existing = json.loads(result_path.read_text(encoding="utf-8"))
+          except Exception:
+              existing = {}
+
+          if existing.get("requestId") != request_id:
+              fallback = {
+                  "requestId": request_id,
+                  "generatedAt": datetime.now(timezone.utc).isoformat(),
+                  "provider": "CareMate",
+                  "model": "workflow-fallback",
+                  "question": inp.get("question", ""),
+                  "reply": "CareMate received your question, but the AI answer could not be completed. Please try again.",
+                  "source": "Workflow fallback"
+              }
+              result_path.write_text(json.dumps(fallback, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Commit generated chat result
+        if: always()
+        run: |
+          git config user.name "caremate-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/chat_result.json
+          if git diff --cached --quiet; then
+            echo "No generated chat change to commit."
+          else
+            git commit -m "Update CareMate AI answer"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Prepare Pages artifact
+        if: always()
+        run: |
+          rm -rf site
+          mkdir -p site/data
+          cp index.html site/index.html
+          cp .nojekyll site/.nojekyll
+          cp data/patient.json site/data/patient.json
+          cp data/history.json site/data/history.json
+          cp data/health_result.json site/data/health_result.json
+          cp data/chat_result.json site/data/chat_result.json
+
+      - name: Configure GitHub Pages
+        if: always()
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        if: always()
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    needs: chat
+    if: always()
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy latest CareMate site
+        id: deployment
+        uses: actions/deploy-pages@v4

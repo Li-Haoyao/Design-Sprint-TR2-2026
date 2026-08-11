@@ -1,0 +1,142 @@
+name: CareMate Health Analysis - Gemini
+run-name: CareMate Health Analysis
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "caremate-health"
+  cancel-in-progress: false
+
+jobs:
+  analyse:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Build and run C++ Gemini analysis
+        id: cpp_health
+        continue-on-error: true
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ libcurl4-openssl-dev nlohmann-json3-dev
+          g++ -std=c++17 -O2 cpp/health_analysis.cpp -lcurl -o health_analysis
+          ./health_analysis
+
+      - name: Ensure a matching result always exists
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          inp = json.loads(Path("data/health_input.json").read_text(encoding="utf-8"))
+          result_path = Path("data/health_result.json")
+          request_id = inp.get("requestId", "")
+
+          try:
+              existing = json.loads(result_path.read_text(encoding="utf-8"))
+          except Exception:
+              existing = {}
+
+          if existing.get("requestId") != request_id:
+              fallback = {
+                  "requestId": request_id,
+                  "generatedAt": datetime.now(timezone.utc).isoformat(),
+                  "provider": "CareMate",
+                  "model": "workflow-fallback",
+                  "status": "Monitor",
+                  "headline": "Analysis could not be completed",
+                  "meaningfulChanges": 0,
+                  "summary": "Your health check was received, but the AI analysis was not completed.",
+                  "reason": "CareMate could not complete the analysis this time.",
+                  "secondaryFinding": "Your submitted record has been kept for the prototype.",
+                  "nextActionShort": "Try again",
+                  "nextAction": "Please try the health check again. If you feel unwell or are concerned, contact a qualified healthcare professional.",
+                  "careSummary": "The latest record was received, but no new AI trend summary is available.",
+                  "familySummary": "The latest record was received, but the AI summary was unavailable.",
+                  "symptomGuidance": "Do not rely on this prototype for urgent or emergency decisions.",
+                  "aiExplanation": "The automated analysis did not finish successfully.",
+                  "source": "Workflow fallback"
+              }
+              result_path.write_text(json.dumps(fallback, indent=2) + "\n", encoding="utf-8")
+
+          # Ensure the latest input is represented in history even when C++ failed early.
+          hist_path = Path("data/history.json")
+          try:
+              history = json.loads(hist_path.read_text(encoding="utf-8"))
+              if not isinstance(history, list):
+                  history = []
+          except Exception:
+              history = []
+
+          if request_id and not any(x.get("requestId") == request_id for x in history if isinstance(x, dict)):
+              history.append(inp)
+              history = history[-30:]
+              hist_path.write_text(json.dumps(history, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Commit generated health files
+        if: always()
+        run: |
+          git config user.name "caremate-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/health_result.json data/history.json
+          if git diff --cached --quiet; then
+            echo "No generated health changes to commit."
+          else
+            git commit -m "Update CareMate health analysis"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Prepare Pages artifact
+        if: always()
+        run: |
+          rm -rf site
+          mkdir -p site/data
+          cp index.html site/index.html
+          cp .nojekyll site/.nojekyll
+          cp data/patient.json site/data/patient.json
+          cp data/history.json site/data/history.json
+          cp data/health_result.json site/data/health_result.json
+          cp data/chat_result.json site/data/chat_result.json
+
+      - name: Configure GitHub Pages
+        if: always()
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        if: always()
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    needs: analyse
+    if: always()
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy latest CareMate site
+        id: deployment
+        uses: actions/deploy-pages@v4
