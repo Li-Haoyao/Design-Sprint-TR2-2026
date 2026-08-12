@@ -145,5 +145,16 @@
     "submittedAt": "2026-08-12T04:57:39.451Z",
     "symptom": "Fatigue",
     "systolic": 130
+  },
+  {
+    "bloodGlucose": 8.2,
+    "diastolic": 76,
+    "heartRate": 93,
+    "note": "",
+    "patient": "Mary Tan",
+    "requestId": "health-7eba8cac-c9af-456f-bfac-ce1291937c44",
+    "submittedAt": "2026-08-12T05:24:20.254Z",
+    "symptom": "None",
+    "systolic": 127
   }
 ]
