@@ -156,5 +156,16 @@
     "submittedAt": "2026-08-12T05:24:20.254Z",
     "symptom": "None",
     "systolic": 127
+  },
+  {
+    "bloodGlucose": 7.7,
+    "diastolic": 82,
+    "heartRate": 84,
+    "note": "",
+    "patient": "Mary Tan",
+    "requestId": "health-bb42228b-1c19-4bf8-88a7-acf386f0e3c4",
+    "submittedAt": "2026-08-12T06:10:46.112Z",
+    "symptom": "Headache",
+    "systolic": 120
   }
 ]
