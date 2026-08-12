@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-12T06:50:35Z",
-  "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+  "generatedAt": "2026-08-12T07:06:19Z",
+  "model": "nvidia/nemotron-3.5-content-safety:free",
   "provider": "OpenRouter",
   "question": "what should i do for patient",
-  "reply": "**What you can do for Mary right now**\n\n1. **Rest in a comfortable, cool place** – Sit or lie down, keep the room well‑ventilated, and avoid strenuous activity.  \n2. **Stay hydrated** – Sip water throughout the day; dehydration can sometimes raise blood‑glucose and heart‑rate readings.  \n3. **Check her blood‑glucose** – If she has a home glucose meter, a quick check can confirm whether the reading is still around 7–8 mmol/L.  \n4. **Monitor the symptoms** – Keep an eye on the headache, dizziness, and fatigue. Note if they:\n   - become stronger or more frequent,  \n   - are accompanied by chest discomfort, shortness of breath, vision changes, or a sudden, severe headache, or  \n   - last more than a few hours without improvement.  \n\n5. **Contact her healthcare provider** if any of the above warning signs appear, or if the symptoms persist beyond today. A brief phone or clinic review can confirm whether any medication adjustment or further evaluation is needed.  \n\n**Why this matters**  \n- Her recent readings show a mild rise in blood‑glucose (≈7.7 mmol/L) and heart‑rate (≈84 bpm) together with new‑onset headache, dizziness, and fatigue.  \n- Blood pressure remains stable (≈120/82 mmHg), which is reassuring, but the combination of symptoms and slightly higher glucose/heart‑rate suggests she may benefit from a professional check‑in.  \n\n**Bottom line** – Let Mary rest, stay hydrated, and monitor her symptoms. If anything feels worse or doesn’t improve, arrange for a timely review by her doctor or clinic. This approach helps catch any change early while keeping her",
-  "requestId": "chat-a0cb370a-adb3-4e5f-b87d-76c383459068",
+  "reply": "User Safety: unsafe\nResponse Safety: unsafe\nSafety Categories: Unauthorized Advice",
+  "requestId": "chat-aa830a2a-e608-40d9-ab96-2062a5adad5e",
   "source": "OpenRouter API via C++ and GitHub Actions"
 }
